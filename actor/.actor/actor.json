@@ -1,0 +1,12 @@
+{
+    "actorSpecification": 1,
+    "name": "uprising-coldoutreach-crawler",
+    "title": "Uprising Playwright Crawler",
+    "description": "Playwright-based crawler for Uprising ColdOutreach",
+    "version": "1.0",
+    "buildTag": "latest",
+    "environmentVariables": {},
+    "paths": {
+        "main": "./main.py"
+    }
+}

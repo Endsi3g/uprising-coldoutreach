@@ -1,0 +1,5 @@
+# Apify SDK
+apify ~= 2.0.0
+
+# Playwright
+playwright ~= 1.45.0
