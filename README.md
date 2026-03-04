@@ -18,6 +18,20 @@ alembic upgrade head
 uvicorn app.main:app --reload --port 8000
 ```
 
+## 🚀 Déploiement Rapide (Windows)
+
+Pour installer les dépendances, construire le frontend et lancer les deux services (API + UI) automatiquement :
+
+```powershell
+./deploy.ps1
+```
+
+Ce script va :
+1. Vérifier Python et Node.js.
+2. Configurer l'environnement virtuel et installer `requirements.txt`.
+3. Installer les modules npm et `build` l'interface.
+4. Lancer le backend (8000) et le frontend (3000) dans des processus séparés.
+
 ## 🏗️ Stack
 
 | Layer | Tech |

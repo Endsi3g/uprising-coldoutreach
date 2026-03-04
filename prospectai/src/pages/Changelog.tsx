@@ -18,7 +18,7 @@ export function Changelog() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('https://api.github.com/repos/Endsider/Uprising-coldoutreach/commits?per_page=10')
+    fetch('https://api.github.com/repos/Endsi3g/uprising-coldoutreach/commits?per_page=10')
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
