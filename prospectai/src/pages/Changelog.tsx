@@ -80,9 +80,23 @@ export function Changelog() {
               </div>
 
               <div className="prose prose-sm md:prose-base prose-invert prose-p:text-text-secondary max-w-none bg-surface border border-border rounded-xl p-4 shadow-sm">
-                <p className="font-medium text-text-primary mb-2 whitespace-pre-wrap">
-                  {c.commit.message}
-                </p>
+                {(() => {
+                  const parts = c.commit.message.split('\n');
+                  const subject = parts[0];
+                  const description = parts.slice(1).join('\n').trim();
+                  return (
+                    <>
+                      <p className="font-bold text-text-primary mb-2">
+                        {subject}
+                      </p>
+                      {description && (
+                        <div className="text-sm text-text-secondary mt-2 border-l-2 border-primary/20 pl-3 py-1 bg-background/30 rounded-r-lg whitespace-pre-wrap italic">
+                          {description}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
                 <div className="flex items-center justify-between mt-4 pt-3 border-t border-border">
                   <div className="text-xs text-text-secondary">
                     Par <span className="font-semibold text-text-primary">{c.commit.author.name}</span>
