@@ -4,7 +4,7 @@ $ErrorActionPreference = "Stop"
 
 function Show-Header {
     Write-Host "`n================================================" -ForegroundColor Cyan
-    Write-Host "   Uprising Prospection - Deployment Script   " -ForegroundColor BoldCyan
+    Write-Host "   Uprising Prospection - Deployment Script   " -ForegroundColor Cyan
     Write-Host "================================================`n" -ForegroundColor Cyan
 }
 
@@ -52,7 +52,7 @@ Start-Process powershell -ArgumentList "-NoExit", "-Command", "npm run dev -- --
 Set-Location ..
 
 Write-Host "`n================================================" -ForegroundColor Cyan
-Write-Host "   Déploiement terminé avec succès !         " -ForegroundColor BoldGreen
+Write-Host "   Déploiement terminé avec succès !         " -ForegroundColor Green
 Write-Host "   Interface : http://localhost:3000         " -ForegroundColor White
 Write-Host "   API Doc   : http://localhost:8000/docs    " -ForegroundColor White
 Write-Host "================================================" -ForegroundColor Cyan
