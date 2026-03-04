@@ -21,7 +21,7 @@ uvicorn app.main:app --reload --port 8000
 ## 🏗️ Stack
 
 | Layer | Tech |
-|-------|------|
+| ----- | ---- |
 | API | FastAPI + Pydantic |
 | DB | PostgreSQL + SQLAlchemy + Alembic |
 | Jobs | Celery + Redis |
@@ -35,7 +35,7 @@ uvicorn app.main:app --reload --port 8000
 ## 🔌 Channels Supportés
 
 | Channel | Service | Coût |
-|---------|---------|------|
+| ------- | ------- | ---- |
 | Email (SMTP) | Gmail App Password | Gratuit (500/jour) |
 | Email (API) | Gmail OAuth2 | Gratuit (meilleure délivrabilité) |
 | SMS | TextBelt | Gratuit (1/jour) ou $0.005/SMS |
@@ -89,7 +89,7 @@ pytest tests/ -v --tb=short
 
 ## 📊 API Docs
 
-Ouvrir **http://localhost:8000/docs** (Swagger UI) ou **/redoc**.
+Ouvrir **<http://localhost:8000/docs>** (Swagger UI) ou **/redoc**.
 
 ## 🗺️ Roadmap v3 (Fait ✅)
 

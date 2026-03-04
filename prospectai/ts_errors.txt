@@ -1,0 +1,7 @@
+src/pages/Pipelines.tsx(44,48): error TS2339: Property 'stage' does not exist on type 'unknown'.
+src/pages/Pipelines.tsx(48,46): error TS2339: Property 'stage' does not exist on type 'unknown'.
+src/pages/Pipelines.tsx(48,85): error TS2339: Property 'id' does not exist on type 'unknown'.
+src/pages/Pipelines.tsx(52,47): error TS2339: Property 'stage' does not exist on type 'unknown'.
+src/pages/Pipelines.tsx(52,81): error TS2339: Property 'stage' does not exist on type 'unknown'.
+src/pages/Pipelines.tsx(109,38): error TS2322: Type '{ children: (provided: DraggableProvided, snapshot: DraggableStateSnapshot) => any; key: any; draggableId: any; index: any; }' is not assignable to type 'DraggableProps'.
+  Property 'key' does not exist on type 'DraggableProps'.

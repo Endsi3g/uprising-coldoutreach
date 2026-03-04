@@ -4,10 +4,26 @@ Ce guide explique comment construire un frontend pour interagir avec le backend 
 
 ## 🏗️ Architecture Recommandée
 
-- **Framework** : Next.js 14+ (App Router) ou React (Vite)
+- **Framework** : React 18+ (généré avec Vite)
+- **Routage** : React Router v6
 - **Styling** : Tailwind CSS + shadcn/ui
-- **State Management** : React Query (pour le data fetching) ou Zustand
+- **Appels API** : Axios ou Fetch + React Query (TanStack Query)
+- **State Management** : Zustand (pour l'état global ex: auth)
 - **Formulaires** : React Hook Form + Zod
+
+### 🚀 Commandes d'initialisation (React + Vite)
+
+```bash
+npm create vite@latest uprising-frontend -- --template react-ts
+cd uprising-frontend
+npm install
+npm install axios @tanstack/react-query react-router-dom zustand
+npm install react-hook-form @hookform/resolvers zod
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+```
+
+*(Après ça, vous pouvez installer shadcn/ui via `npx shadcn@latest init`)*
 
 ## 1. Authentification (JWT)
 
