@@ -17,6 +17,11 @@ from app.services.email import prepare_html, send_smtp_email
 router = APIRouter(prefix="/messages", tags=["Messages"])
 
 
+@router.get("", response_model=list[MessageOut])
+def list_messages(user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    return msg_crud.list_messages(db, user["account_id"])
+
+
 @router.post("/send", response_model=MessageOut, status_code=201)
 def send_message(
     body: MessageSendRequest,

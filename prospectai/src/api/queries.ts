@@ -81,7 +81,7 @@ export function usePipelines() {
     return useQuery({
         queryKey: ['pipelines'],
         queryFn: async () => {
-            const { data } = await apiClient.get('/pipelines/');
+            const { data } = await apiClient.get('/pipelines');
             return data as PipelineItem[];
         }
     });
@@ -100,7 +100,7 @@ export function useSequences() {
     return useQuery({
         queryKey: ['sequences'],
         queryFn: async () => {
-            const { data } = await apiClient.get('/sequences/');
+            const { data } = await apiClient.get('/sequences');
             return data as Sequence[];
         }
     });
@@ -136,7 +136,7 @@ export function useMessages() {
     return useQuery({
         queryKey: ['messages'],
         queryFn: async () => {
-            const { data } = await apiClient.get('/messages/');
+            const { data } = await apiClient.get('/messages');
             return data as MessageItem[];
         }
     });

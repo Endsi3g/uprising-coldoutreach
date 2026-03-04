@@ -17,6 +17,15 @@ export function Leads() {
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [enrollProgress, setEnrollProgress] = useState(0);
   const [totalToEnroll, setTotalToEnroll] = useState(0);
+  
+  // Search & Filter State
+  const [search, setSearch] = useState('');
+  const [stageFilter, setStageFilter] = useState<string>('all');
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   const toggleLead = (id: number) => {
     setSelectedLeads(prev => prev.includes(id) ? prev.filter(l => l !== id) : [...prev, id]);
@@ -51,6 +60,58 @@ export function Leads() {
   };
 
   const activeLead = leads.find(l => l.id === selectedLeadDetails);
+
+  // Compute filtered and paginated leads
+  const filteredLeads = leads.filter(lead => {
+    // 1. Search criteria
+    const searchLower = search.toLowerCase();
+    const searchMatch = 
+      lead.company_name?.toLowerCase().includes(searchLower) ||
+      lead.contact_name?.toLowerCase().includes(searchLower) ||
+      lead.email?.toLowerCase().includes(searchLower);
+
+    // 2. Stage Filter criteria
+    const stageMatch = stageFilter === 'all' || lead.status === stageFilter;
+
+    return searchMatch && stageMatch;
+  });
+
+  const totalPages = Math.ceil(filteredLeads.length / itemsPerPage);
+  // Optional: Safety to bound page after intensive filter changes
+  const safeCurrentPage = Math.max(1, Math.min(currentPage, totalPages || 1));
+  const startIndex = (safeCurrentPage - 1) * itemsPerPage;
+  const paginatedLeads = filteredLeads.slice(startIndex, startIndex + itemsPerPage);
+
+  const handleExportCSV = () => {
+    const leadsToExport = selectedLeads.length > 0 
+      ? leads.filter(l => selectedLeads.includes(l.id))
+      : filteredLeads;
+    
+    if (leadsToExport.length === 0) return;
+
+    // Simple CSV generator
+    const headers = ['Company', 'Contact', 'Email', 'Phone', 'City', 'Status', 'ICP Score', 'Heat Score'];
+    const rows = leadsToExport.map(l => [
+      `"${l.company_name || ''}"`,
+      `"${l.contact_name || ''}"`,
+      `"${l.email || ''}"`,
+      `"${l.phone || ''}"`,
+      `"${l.city || ''}"`,
+      `"${l.status || 'New'}"`,
+      l.icp_score,
+      l.heat_score
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `leads_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   if (isLoading) {
     return (
@@ -101,9 +162,13 @@ export function Leads() {
               Importer CSV
             </label>
           </div>
-          <button title="Export" className="inline-flex items-center justify-center rounded-xl border border-border bg-surface px-4 py-2 text-sm font-medium text-text-primary shadow-sm hover:bg-background transition-colors">
+          <button 
+            title="Export" 
+            onClick={handleExportCSV}
+            className="inline-flex items-center justify-center rounded-xl border border-border bg-surface px-4 py-2 text-sm font-medium text-text-primary shadow-sm hover:bg-background transition-colors"
+          >
             <Download className="mr-2 h-4 w-4" />
-            Exporter CSV
+            Exporter CSV {selectedLeads.length > 0 ? `(${selectedLeads.length})` : ''}
           </button>
           <button title="New lead" className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-dark transition-colors">
             <Plus className="mr-2 h-4 w-4" />
@@ -133,8 +198,6 @@ export function Leads() {
             <span className="text-text-secondary">{enrollProgress} / {totalToEnroll} prospects</span>
           </div>
           <div className="w-full bg-border rounded-full h-2 overflow-hidden">
-            {/* eslint-disable-next-line */}
-            {/* NOSONAR */}
             <div 
               className="bg-primary h-2 rounded-full transition-all duration-300 ease-out" 
               style={{ width: `${(enrollProgress / totalToEnroll) * 100}%` }}
@@ -152,34 +215,39 @@ export function Leads() {
           <input
             type="text"
             title="Search lead"
-            className="block w-full rounded-lg border-0 py-2 pl-10 pr-3 text-text-primary ring-1 ring-inset ring-border placeholder:text-text-secondary focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 bg-background"
-            placeholder="Rechercher un lead..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="block w-full rounded-lg border-0 py-2 pl-10 pr-3 text-text-primary ring-1 ring-inset ring-border placeholder:text-text-secondary focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 bg-background transition-all"
+            placeholder="Rechercher par nom, email, entreprise..."
           />
         </div>
         
         <div className="flex items-center gap-2">
-          <button title="Stage filter" className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-text-primary hover:bg-border/50 transition-colors">
-            <Filter className="h-4 w-4 text-text-secondary" />
-            Étape
-          </button>
-          <button title="Score filter" className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-text-primary hover:bg-border/50 transition-colors">
-            Score ICP
-          </button>
-          <button title="City filter" className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-text-primary hover:bg-border/50 transition-colors">
-            Ville
-          </button>
+          <select 
+            title="Stage filter"
+            value={stageFilter}
+            onChange={(e) => setStageFilter(e.target.value)} 
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-text-primary hover:bg-border/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="all">Toutes les étapes</option>
+            <option value="New">Nouveau (New)</option>
+            <option value="Contacted">Contacté (Contacted)</option>
+            <option value="Replied">Répondu (Replied)</option>
+            <option value="Hot">Chaud (Hot)</option>
+            <option value="Booked">Rendez-vous (Booked)</option>
+          </select>
         </div>
       </div>
 
       {/* Data Table */}
-      <div className="flex-1 overflow-hidden rounded-xl border border-border bg-surface shadow-sm flex relative">
+      <div className="flex-1 overflow-hidden rounded-xl border border-border bg-surface shadow-sm flex relative flex-col">
         <div className={`flex-1 overflow-auto transition-all duration-300 ${selectedLeadDetails ? 'mr-[400px]' : ''}`}>
           <table className="min-w-full divide-y divide-border">
             <thead className="bg-background sticky top-0 z-10">
               <tr>
                 <th scope="col" className="relative px-4 sm:w-12 sm:px-6">
                   <button title="Select all" onClick={toggleAll} className="text-text-secondary hover:text-primary">
-                    {selectedLeads.length === leads.length ? (
+                    {selectedLeads.length === filteredLeads.length && filteredLeads.length > 0 ? (
                       <CheckSquare className="h-5 w-5" />
                     ) : (
                       <Square className="h-5 w-5" />
@@ -197,7 +265,14 @@ export function Leads() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border bg-surface">
-              {leads.map((lead) => (
+              {paginatedLeads.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-text-secondary">
+                    Aucun prospect ne correspond à vos filtres.
+                  </td>
+                </tr>
+              ) : (
+                paginatedLeads.map((lead) => (
                 <tr 
                   key={lead.id} 
                   className={`hover:bg-background/50 transition-colors cursor-pointer ${selectedLeadDetails === lead.id ? 'bg-background' : ''}`}
@@ -235,8 +310,6 @@ export function Leads() {
                           <span className="font-medium text-text-primary">{lead.icp_score}</span>
                         </div>
                         <div className="w-full bg-border rounded-full h-1.5">
-                          {/* eslint-disable-next-line */}
-                          {/* NOSONAR */}
                           <div className="bg-primary h-1.5 rounded-full" style={{ width: `${lead.icp_score}%` }}></div>
                         </div>
                       </div>
@@ -246,8 +319,6 @@ export function Leads() {
                           <span className="font-medium text-danger flex items-center gap-0.5"><Flame className="w-3 h-3" /> {lead.heat_score}</span>
                         </div>
                         <div className="w-full bg-border rounded-full h-1.5">
-                          {/* eslint-disable-next-line */}
-                          {/* NOSONAR */}
                           <div className="bg-danger h-1.5 rounded-full" style={{ width: `${lead.heat_score}%` }}></div>
                         </div>
                       </div>
@@ -267,16 +338,56 @@ export function Leads() {
                       ))}
                     </div>
                   </td>
-                  <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6" onClick={(e) => e.stopPropagation()}>
+                  <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6" onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === lead.id ? null : lead.id); }}>
                     <button title="More actions" className="text-text-secondary hover:text-primary transition-colors p-1 rounded-md hover:bg-background">
                       <MoreHorizontal className="h-5 w-5" />
                     </button>
+                    {openMenuId === lead.id && (
+                      <div className="absolute right-6 top-10 mt-2 w-48 rounded-md bg-surface shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 overflow-hidden border border-border">
+                        <div className="py-1">
+                          <a href={`tel:${lead.phone}`} className="block px-4 py-2 text-sm text-text-primary hover:bg-background transition-colors text-left" onClick={() => setOpenMenuId(null)}>Appeler</a>
+                          <a href={`mailto:${lead.email}`} className="block px-4 py-2 text-sm text-text-primary hover:bg-background transition-colors text-left" onClick={() => setOpenMenuId(null)}>Envoyer un email</a>
+                          <button className="w-full block px-4 py-2 text-sm text-text-primary hover:bg-background transition-colors text-left" onClick={() => { setOpenMenuId(null); setSelectedLeadDetails(lead.id); }}>Voir les détails</button>
+                          <button className="w-full block px-4 py-2 text-sm text-danger hover:bg-danger/10 transition-colors text-left border-t border-border mt-1" onClick={() => setOpenMenuId(null)}>Supprimer</button>
+                        </div>
+                      </div>
+                    )}
                   </td>
                 </tr>
-              ))}
+              ))
+            )}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */
+        totalPages > 1 && (
+          <div className="flex items-center justify-between border-t border-border bg-background px-4 py-3 sm:px-6">
+            <div className="hidden sm:block">
+              <p className="text-sm text-text-secondary">
+                Affichage de <span className="font-medium">{startIndex + 1}</span> à <span className="font-medium">{Math.min(startIndex + itemsPerPage, filteredLeads.length)}</span> sur <span className="font-medium">{filteredLeads.length}</span> prospects
+              </p>
+            </div>
+            <div className="flex flex-1 justify-between sm:justify-end gap-2">
+              <button
+                title="Page précédente"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium text-text-primary hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Précédent
+              </button>
+              <button
+                title="Page suivante"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="relative inline-flex items-center rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium text-text-primary hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Suivant
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Sidebar Detail */}
         {activeLead && (
@@ -343,8 +454,6 @@ export function Leads() {
                     <span className="font-bold text-text-primary">{activeLead.icp_score}/100</span>
                   </div>
                   <div className="w-full bg-border rounded-full h-2">
-                    {/* eslint-disable-next-line */}
-                    {/* NOSONAR */}
                     <div className="bg-primary h-2 rounded-full" style={{ width: `${activeLead.icp_score}%` }}></div>
                   </div>
                 </div>
@@ -355,8 +464,6 @@ export function Leads() {
                     <span className="font-bold text-danger flex items-center gap-1"><Flame className="w-4 h-4" /> {activeLead.heat_score}/100</span>
                   </div>
                   <div className="w-full bg-border rounded-full h-2">
-                    {/* eslint-disable-next-line */}
-                    {/* NOSONAR */}
                     <div className="bg-danger h-2 rounded-full" style={{ width: `${activeLead.heat_score}%` }}></div>
                   </div>
                 </div>

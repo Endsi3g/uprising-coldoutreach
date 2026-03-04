@@ -39,6 +39,15 @@ def list_messages_by_lead(db: Session, lead_id: uuid.UUID) -> list[Message]:
     )
 
 
+def list_messages(db: Session, account_id: uuid.UUID) -> list[Message]:
+    return (
+        db.query(Message)
+        .filter(Message.account_id == account_id)
+        .order_by(Message.created_at.desc())
+        .all()
+    )
+
+
 def record_activity(
     db: Session,
     account_id: uuid.UUID,
