@@ -190,6 +190,64 @@ export function Settings() {
                     </a>
                   </div>
                 </div>
+
+                {/* Jasmin SMS Gateway */}
+                <div className="flex flex-col p-4 border border-border rounded-xl bg-background gap-4 transition-all hover:border-primary/50">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-surface border border-border rounded-full flex items-center justify-center shadow-sm">
+                      <span className="font-bold text-text-primary text-xs">Jasmin</span>
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-text-primary">Jasmin SMS Gateway</h3>
+                      <p className="text-xs text-text-secondary">Routage SMS avancé (SMPP, HTTP, failover).</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-text-secondary ml-1">URL API</label>
+                      <input 
+                        type="text" 
+                        value={localStorage.getItem('JASMIN_API_URL') || ''}
+                        onChange={(e) => localStorage.setItem('JASMIN_API_URL', e.target.value)}
+                        placeholder="http://localhost:8080"
+                        className="w-full px-4 py-2 bg-surface border border-border rounded-xl text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-text-secondary ml-1">Utilisateur</label>
+                      <input 
+                        type="text" 
+                        value={localStorage.getItem('JASMIN_USER') || ''}
+                        onChange={(e) => localStorage.setItem('JASMIN_USER', e.target.value)}
+                        placeholder="jookers"
+                        className="w-full px-4 py-2 bg-surface border border-border rounded-xl text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                      />
+                    </div>
+                    <div className="space-y-1 md:col-span-2">
+                      <label className="text-[10px] uppercase font-bold text-text-secondary ml-1">Mot de passe</label>
+                      <div className="flex gap-3">
+                        <input 
+                          type="password" 
+                          value={localStorage.getItem('JASMIN_PASSWORD') || ''}
+                          onChange={(e) => localStorage.setItem('JASMIN_PASSWORD', e.target.value)}
+                          placeholder="••••••••"
+                          className="flex-1 px-4 py-2 bg-surface border border-border rounded-xl text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                        />
+                        <button 
+                          onClick={() => window.location.reload()}
+                          className="px-6 py-2 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary-dark transition-colors whitespace-nowrap"
+                        >
+                          Appliquer
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center px-1">
+                    <a href="http://jasminsms.com/" target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                      Documentation Jasmin →
+                    </a>
+                  </div>
+                </div>
                 
                 {/* Gmail Placeholder */}
                 <div className="flex items-center justify-between p-4 border border-border rounded-xl bg-background opacity-75">

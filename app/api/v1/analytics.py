@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -63,7 +65,7 @@ def overview(user: dict = Depends(get_current_user), db: Session = Depends(get_d
 
 
 @router.get("/pipeline-funnel/{pipeline_id}", response_model=PipelineFunnel)
-def pipeline_funnel(
+async def pipeline_funnel(
     pipeline_id: uuid.UUID,
     user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -73,13 +75,18 @@ def pipeline_funnel(
         raise HTTPException(404, "Pipeline not found")
 
     stages = pipe_crud.list_stages(db, pipeline_id)
+    
+    # Consolidated count query
+    counts_map = dict(
+        db.query(Lead.stage_id, func.count(Lead.id))
+        .filter(Lead.pipeline_id == pipeline_id)
+        .group_by(Lead.stage_id)
+        .all()
+    )
+
     result = []
     for stage in stages:
-        count = (
-            db.query(func.count(Lead.id))
-            .filter(Lead.pipeline_id == pipeline_id, Lead.stage_id == stage.id)
-            .scalar() or 0
-        )
+        count = counts_map.get(stage.id, 0)
         result.append(PipelineFunnelStage(stage_name=stage.name, count=count, color=stage.color))
 
     return PipelineFunnel(pipeline_name=pipeline.name, stages=result)

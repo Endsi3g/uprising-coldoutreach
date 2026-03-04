@@ -23,8 +23,10 @@ router = APIRouter(prefix="/multi-search", tags=["Multi Search"])
 _batches: dict[str, dict] = {}
 
 
+import asyncio
+
 @router.post("", status_code=201)
-def create_multi_search(
+async def create_multi_search(
     body: MultiSearchRequest,
     user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -36,10 +38,10 @@ def create_multi_search(
         raise HTTPException(400, "Maximum 20 searches per batch")
 
     batch_id = str(uuid.uuid4())
-    sub_jobs = []
-
+    sources = []
+    
+    # Pre-create sources in DB (synchronously for now, DB session is sync)
     for search in body.searches:
-        # Create lead source
         source = LeadSource(
             account_id=user["account_id"],
             type="google_maps",
@@ -51,36 +53,40 @@ def create_multi_search(
             },
         )
         db.add(source)
-        db.commit()
-        db.refresh(source)
+        sources.append((source, search))
+    
+    db.commit()
+    for s, _ in sources:
+        db.refresh(s)
 
-        # Start Apify run
+    # Parallelized Apify runs
+    async def _start_job(source, search):
         try:
-            run_data = apify_svc.start_google_maps_run(
+            run_data = await apify_svc.start_google_maps_run(
                 query=search.query,
                 location=search.location,
                 max_items=search.max_items,
             )
+            return {
+                "query": search.query,
+                "location": search.location,
+                "status": "running",
+                "apify_run_id": run_data.get("id", ""),
+                "dataset_id": run_data.get("defaultDatasetId", ""),
+                "source_id": str(source.id),
+                "max_items": search.max_items,
+                "leads_created": 0,
+            }
         except Exception as e:
-            sub_jobs.append({
+            return {
                 "query": search.query,
                 "location": search.location,
                 "status": "error",
                 "error": str(e),
                 "source_id": str(source.id),
-            })
-            continue
+            }
 
-        sub_jobs.append({
-            "query": search.query,
-            "location": search.location,
-            "status": "running",
-            "apify_run_id": run_data.get("id", ""),
-            "dataset_id": run_data.get("defaultDatasetId", ""),
-            "source_id": str(source.id),
-            "max_items": search.max_items,
-            "leads_created": 0,
-        })
+    sub_jobs = await asyncio.gather(*[_start_job(s, search) for s, search in sources])
 
     _batches[batch_id] = {
         "id": batch_id,
@@ -111,7 +117,7 @@ def get_batch(batch_id: str, user: dict = Depends(get_current_user)):
 
 
 @router.post("/{batch_id}/poll")
-def poll_batch(
+async def poll_batch(
     batch_id: str,
     user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -144,45 +150,40 @@ def poll_batch(
     seen_urls: set[str] = set()
     total_new = 0
 
-    for job in batch["sub_jobs"]:
+    async def _process_job(job):
+        nonlocal total_new
         if job["status"] in ("completed", "error"):
-            continue
+            return
 
         # Check Apify status
         try:
-            run_data = apify_svc.get_run_status(job["apify_run_id"])
+            run_data = await apify_svc.get_run_status(job["apify_run_id"])
         except Exception:
-            continue
+            return
 
         apify_status = run_data.get("status", "RUNNING")
         if apify_status not in ("SUCCEEDED",):
-            continue
+            return
 
         # Fetch dataset
         try:
-            items = apify_svc.get_dataset_items(job["dataset_id"], limit=job["max_items"])
+            items = await apify_svc.get_dataset_items(job["dataset_id"], limit=job["max_items"])
         except Exception:
             job["status"] = "error"
-            continue
+            return
 
         # Normalize and deduplicate
         normalized = []
         for item in items:
             n = apify_svc.normalize_place(item)
-
-            # Dedup by phone or google_maps_url
             phone = n.get("phone") or ""
             gmap_url = n.get("google_maps_url") or ""
 
-            if phone and phone in seen_phones:
-                continue
-            if gmap_url and gmap_url in seen_urls:
+            if (phone and phone in seen_phones) or (gmap_url and gmap_url in seen_urls):
                 continue
 
-            if phone:
-                seen_phones.add(phone)
-            if gmap_url:
-                seen_urls.add(gmap_url)
+            if phone: seen_phones.add(phone)
+            if gmap_url: seen_urls.add(gmap_url)
 
             n["icp_score"] = compute_icp_score(
                 industry=n.get("industry"),
@@ -204,6 +205,9 @@ def poll_batch(
         job["leads_created"] = len(leads)
         batch["completed"] += 1
         total_new += len(leads)
+
+    # Parallelize job processing
+    await asyncio.gather(*[_process_job(j) for j in batch["sub_jobs"]])
 
     batch["total_leads_created"] += total_new
 

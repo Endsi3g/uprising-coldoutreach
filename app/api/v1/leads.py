@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import csv
 import io
 import uuid
@@ -20,7 +21,7 @@ router = APIRouter(prefix="/leads", tags=["Leads"])
 
 
 @router.get("", response_model=list[LeadOut])
-def list_leads(
+async def list_leads(
     pipeline_id: uuid.UUID | None = None,
     stage_id: uuid.UUID | None = None,
     city: str | None = None,
@@ -31,15 +32,19 @@ def list_leads(
     user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return leads_crud.list_leads(
-        db, user["account_id"],
-        pipeline_id=pipeline_id,
-        stage_id=stage_id,
-        city=city,
-        icp_score_gte=icp_score_gte,
-        status=status,
-        skip=skip,
-        limit=limit,
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(
+        None,  # Uses default ThreadPoolExecutor
+        lambda: leads_crud.list_leads(
+            db, user["account_id"],
+            pipeline_id=pipeline_id,
+            stage_id=stage_id,
+            city=city,
+            icp_score_gte=icp_score_gte,
+            status=status,
+            skip=skip,
+            limit=limit,
+        )
     )
 
 

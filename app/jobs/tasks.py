@@ -71,12 +71,13 @@ def poll_apify_job_task(run_id: str, dataset_id: str, account_id: str, source_id
     from app.services.scoring import compute_icp_score
 
     db = SessionLocal()
+    import asyncio
     try:
-        run_data = apify_svc.get_run_status(run_id)
+        run_data = asyncio.run(apify_svc.get_run_status(run_id))
         if run_data.get("status") != "SUCCEEDED":
             return {"status": run_data.get("status")}
 
-        items = apify_svc.get_dataset_items(dataset_id)
+        items = asyncio.run(apify_svc.get_dataset_items(dataset_id))
         aid = uuid.UUID(account_id)
         sid = uuid.UUID(source_id)
 

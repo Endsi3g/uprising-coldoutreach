@@ -39,6 +39,11 @@ class Settings(BaseSettings):
     # Webhooks
     WEBHOOK_SECRET: str = ""
 
+    # Jasmin SMS Gateway
+    JASMIN_API_URL: str = "http://localhost:8080"
+    JASMIN_USER: str = "jookers"
+    JASMIN_PASSWORD: str = "jookers"
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 
