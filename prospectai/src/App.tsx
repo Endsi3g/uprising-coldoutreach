@@ -11,6 +11,7 @@ const Analytics = lazy(() => import('./pages/Analytics').then(m => ({ default: m
 const Settings = lazy(() => import('./pages/Settings').then(m => ({ default: m.Settings })));
 const Scraping = lazy(() => import('./pages/Scraping').then(m => ({ default: m.Scraping })));
 const Changelog = lazy(() => import('./pages/Changelog').then(m => ({ default: m.Changelog })));
+const Templates = lazy(() => import('./pages/Templates').then(m => ({ default: m.Templates })));
 
 const LoadingFallback = () => (
   <div className="flex h-[80vh] w-full flex-col items-center justify-center space-y-4">
@@ -38,6 +39,12 @@ export default function App() {
           } />
           <Route path="scraping" element={
             <Suspense fallback={<LoadingFallback />}><Scraping /></Suspense>
+          } />
+          <Route path="templates" element={
+            <Suspense fallback={<LoadingFallback />}><Templates /></Suspense>
+          } />
+          <Route path="changelog" element={
+            <Suspense fallback={<LoadingFallback />}><Changelog /></Suspense>
           } />
           <Route path="messages" element={
             <Suspense fallback={<LoadingFallback />}><Messages /></Suspense>
