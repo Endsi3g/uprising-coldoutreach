@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Filter, Download, MoreHorizontal, ChevronRight, CheckSquare, Square, Mail, Phone, Building2, Zap, User, Flame, Plus, Upload, Loader2 } from 'lucide-react';
+import { Search, Filter, Download, MoreHorizontal, ChevronRight, CheckSquare, Square, Mail, Phone, Building2, Zap, User, Users, Flame, Plus, Upload, Loader2 } from 'lucide-react';
 import { useLeads } from '../api/queries';
 
 const stages = {
@@ -11,7 +11,7 @@ const stages = {
 };
 
 export function Leads() {
-  const { data: leads = [], isLoading } = useLeads();
+  const { data: leads = [], isLoading, isError } = useLeads();
   const [selectedLeads, setSelectedLeads] = useState<number[]>([]);
   const [selectedLeadDetails, setSelectedLeadDetails] = useState<number | null>(null);
   const [isEnrolling, setIsEnrolling] = useState(false);
@@ -54,8 +54,34 @@ export function Leads() {
 
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex h-[60vh] flex-col items-center justify-center space-y-4">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="text-text-secondary">Chargement des prospects...</p>
+      </div>
+    );
+  }
+
+  if (isError || leads.length === 0) {
+    return (
+      <div className="flex h-full flex-col space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-text-primary tracking-tight">Prospects</h1>
+            <p className="text-sm text-text-secondary">Gérez vos prospects et campagnes.</p>
+          </div>
+        </div>
+        <div className="flex flex-1 items-center justify-center rounded-xl border border-border border-dashed bg-surface/50">
+          <div className="flex flex-col items-center justify-center space-y-4 text-center max-w-sm p-4">
+            <div className="rounded-full bg-primary/10 p-4">
+              <Users className="h-8 w-8 text-primary" />
+            </div>
+            <h3 className="text-xl font-bold text-text-primary">Aucun Prospect Trouvé</h3>
+            <p className="text-text-secondary">Votre liste est vide. Commencez par importer un fichier CSV ou utilisez notre module Google Maps.</p>
+            <button onClick={() => window.location.href = '/scraping'} className="mt-4 inline-flex items-center justify-center rounded-xl bg-primary px-6 py-2 font-medium text-white transition-colors hover:bg-primary-dark">
+              Rechercher des Prospects
+            </button>
+          </div>
+        </div>
       </div>
     );
   }

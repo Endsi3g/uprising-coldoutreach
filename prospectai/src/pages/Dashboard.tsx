@@ -18,12 +18,28 @@ const item = {
 };
 
 export function Dashboard() {
-  const { data: analytics, isLoading } = useDashboardOverview();
+  const { data: analytics, isLoading, isError } = useDashboardOverview();
 
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex h-[60vh] flex-col items-center justify-center space-y-4">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="text-text-secondary">Analyse des données en cours...</p>
+      </div>
+    );
+  }
+
+  if (isError || !analytics) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center space-y-4 text-center">
+        <div className="rounded-full bg-danger/10 p-4">
+          <Users className="h-8 w-8 text-danger" />
+        </div>
+        <h3 className="text-xl font-bold text-text-primary">Aucun Prospect Détecté</h3>
+        <p className="text-text-secondary max-w-sm">Vous n'avez pas encore de données pour générer le tableau de bord. Commencez par trouver des leads !</p>
+        <button onClick={() => window.location.href = '/scraping'} className="mt-4 rounded-xl bg-primary px-6 py-2 font-medium text-white transition-colors hover:bg-primary-dark">
+          Lancer un Scraping
+        </button>
       </div>
     );
   }

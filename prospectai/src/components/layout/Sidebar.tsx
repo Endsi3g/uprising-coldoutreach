@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, GitBranch, Zap, Mail, BarChart3, Settings, MapPin } from 'lucide-react';
+import { Home, Users, GitBranch, Zap, Mail, BarChart3, Settings, MapPin, History } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -15,6 +15,7 @@ const navigation = [
   { name: 'Séquences', href: '/sequences', icon: Zap },
   { name: 'Messages', href: '/messages', icon: Mail },
   { name: 'Analyses', href: '/analytics', icon: BarChart3 },
+  { name: 'Nouveautés', href: '/changelog', icon: History },
 ];
 
 export function Sidebar() {

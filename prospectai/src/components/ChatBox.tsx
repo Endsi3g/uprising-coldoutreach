@@ -2,12 +2,25 @@ import { Paperclip, Mic, Send, Link as LinkIcon, Loader2 } from 'lucide-react';
 import { useMessages } from '../api/queries';
 
 export function ChatBox() {
-  const { data: messages = [], isLoading } = useMessages();
+  const { data: messages = [], isLoading, isError } = useMessages();
 
   if (isLoading) {
       return (
-        <div className="w-full h-full bg-border rounded-3xl p-2 flex items-center justify-center mx-auto shadow-soft transition-colors duration-300">
-           <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="w-full h-[60vh] md:h-full bg-surface border border-border rounded-3xl p-2 flex flex-col items-center justify-center mx-auto shadow-soft transition-colors duration-300">
+           <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+           <p className="text-text-secondary text-sm">Synchronisation des messages...</p>
+        </div>
+      );
+  }
+
+  if (isError) {
+      return (
+        <div className="w-full h-full bg-surface border border-border rounded-3xl p-2 flex flex-col items-center justify-center mx-auto shadow-soft transition-colors duration-300">
+           <div className="rounded-full bg-danger/10 p-4 mb-4">
+             <span className="text-danger font-bold text-xl">!</span>
+           </div>
+           <p className="text-text-primary font-medium">Connexion interrompue</p>
+           <p className="text-text-secondary text-sm max-w-xs text-center mt-2">Impossible de charger l'historique des messages. Vérifiez le backend.</p>
         </div>
       );
   }

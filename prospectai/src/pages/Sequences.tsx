@@ -16,16 +16,36 @@ export function Sequences() {
   const [activeTab, setActiveTab] = useState('list');
   const [activeStep, setActiveStep] = useState(steps[0]);
 
-  const { data: sequences = [], isLoading } = useSequences();
+  const { data: sequences = [], isLoading, isError } = useSequences();
 
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex h-[60vh] flex-col items-center justify-center space-y-4">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="text-text-secondary">Chargement de vos séquences...</p>
       </div>
     );
   }
 
+  if (isError) {
+    return (
+      <div className="flex h-full flex-col space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-text-primary tracking-tight">Séquences</h1>
+            <p className="text-sm text-text-secondary">Automatisez votre prospection multi-canal.</p>
+          </div>
+        </div>
+        <div className="flex flex-1 flex-col items-center justify-center rounded-xl border border-border border-dashed bg-surface/50 p-6 text-center">
+            <div className="rounded-full bg-danger/10 p-4 mb-4">
+              <Zap className="h-8 w-8 text-danger" />
+            </div>
+            <h3 className="text-xl font-bold text-text-primary">Erreur de Récupération</h3>
+            <p className="text-text-secondary max-w-sm mt-2">Impossible de charger vos séquences actuellement.</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="flex h-full flex-col space-y-4">
       <div className="flex items-center justify-between">
@@ -58,7 +78,23 @@ export function Sequences() {
       </div>
 
       {activeTab === 'list' ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        sequences.length === 0 ? (
+          <div className="flex flex-1 flex-col items-center justify-center rounded-xl border border-border border-dashed bg-surface/50 p-12 text-center mt-6">
+             <div className="rounded-full bg-primary/10 p-4 mb-4">
+                <Zap className="h-8 w-8 text-primary" />
+             </div>
+             <h3 className="text-xl font-bold text-text-primary">Aucune Séquence</h3>
+             <p className="text-text-secondary max-w-sm mt-2">Vous n'avez pas encore configuré de séquence d'outreach. Créez-en une pour automatiser votre prospection.</p>
+             <button 
+               onClick={() => setActiveTab('builder')}
+               className="mt-4 inline-flex items-center justify-center rounded-xl bg-primary px-6 py-2 font-medium text-white transition-colors hover:bg-primary-dark"
+             >
+               <Plus className="mr-2 h-4 w-4" />
+               Créer une Séquence
+             </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-6">
           {sequences.map((seq) => (
             <div key={seq.id} className="rounded-xl border border-border bg-surface shadow-sm hover:shadow-md transition-shadow">
               <div className="p-6">
@@ -97,6 +133,7 @@ export function Sequences() {
             </div>
           ))}
         </div>
+        )
       ) : (
         <div className="flex flex-1 gap-6 overflow-hidden">
           {/* Builder Canvas */}
