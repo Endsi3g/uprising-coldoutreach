@@ -48,6 +48,7 @@ export function useMapsJobs() {
             const { data } = await apiClient.get('/multi-search/history');
             return data as SearchJob[];
         },
+        refetchInterval: 5000, // Poll history every 5s
     });
 }
 

@@ -9,7 +9,9 @@ class TestHealthEndpoints:
     def test_root(self, client):
         resp = client.get("/")
         assert resp.status_code == 200
-        assert resp.json()["status"] == "ok"
+        data = resp.json()
+        assert data["status"] == "ok"
+        assert "app" in data
 
     def test_health(self, client):
         resp = client.get("/health")

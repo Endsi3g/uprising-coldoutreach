@@ -108,6 +108,22 @@ async def create_multi_search(
     }
 
 
+@router.get("/history")
+def get_batch_history(user: dict = Depends(get_current_user)):
+    """Retrieve all search jobs for the current account."""
+    return [
+        {
+            "id": b["id"],
+            "status": b["status"].upper(), # Frontend expects UPPERCASE status
+            "total_found": b["total_leads_created"],
+            "search_queries": [j["query"] for j in b["sub_jobs"]],
+            "created_at": b["created_at"]
+        }
+        for b in _batches.values()
+        if b["account_id"] == str(user["account_id"])
+    ]
+
+
 @router.get("/{batch_id}")
 def get_batch(batch_id: str, user: dict = Depends(get_current_user)):
     batch = _batches.get(batch_id)

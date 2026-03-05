@@ -2,8 +2,7 @@
 
 $ErrorActionPreference = "Stop"
 
-# Ensure execution policy allows local scripts
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+# Ensure execution policy allows local scripts (Handled by environment)
 
 function Show-Header {
     Write-Host "`n================================================" -ForegroundColor Cyan
@@ -41,13 +40,13 @@ if ($dockerAvailable) {
 
 # 2. Setup Backend
 Write-Host "[2/4] Configuration du Backend (FastAPI)..." -ForegroundColor Yellow
-if (!(Test-Path "venv")) {
+if (!(Test-Path ".venv")) {
     Write-Host "Création de l'environnement virtuel..."
-    python -m venv venv
+    python -m venv .venv
 }
 Write-Host "Installation des dépendances Python..."
-& .\venv\Scripts\python.exe -m pip install --upgrade pip
-& .\venv\Scripts\python.exe -m pip install -r requirements.txt
+& .\.venv\Scripts\python.exe -m pip install --upgrade pip
+& .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 Write-Host "✅ Backend configuré.`n" -ForegroundColor Green
 
 # 3. Setup & Build Frontend
@@ -60,13 +59,21 @@ npm run build
 Set-Location ..
 Write-Host "✅ Frontend construit.`n" -ForegroundColor Green
 
+# 3.5 Run Backend Tests
+Write-Host "[3.5/4] Exécution des tests backend..." -ForegroundColor Yellow
+& .\.venv\Scripts\pytest.exe tests/test_api_endpoints.py tests/test_apify_integration.py
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "❌ Les tests backend ont échoué. Le déploiement est interrompu."
+}
+Write-Host "✅ Tests backend réussis.`n" -ForegroundColor Green
+
 # 4. Launch Application
 Write-Host "[4/4] Lancement des services..." -ForegroundColor Yellow
 Write-Host "Lancement de l'application sur http://localhost:8000" -ForegroundColor Gray
 Write-Host "(Le frontend est servi directement par le backend en production)" -ForegroundColor Gray
 
 # Start backend with window tagging for cleanup
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "`$Host.UI.RawUI.WindowTitle = 'ColdOutreach-Backend'; .\venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "`$Host.UI.RawUI.WindowTitle = 'ColdOutreach-Backend'; .\.venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
 
 # Start-Process powershell -ArgumentList "-NoExit", "-Command", "npm run dev -- --port 3000"
 

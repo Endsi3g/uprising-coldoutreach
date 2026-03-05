@@ -50,23 +50,6 @@ app.include_router(analytics.router)
 app.include_router(integrations.router)
 app.include_router(webhooks.router)
 
-# Serve Frontend
-frontend_path = os.path.join(os.path.dirname(__file__), "..", "prospectai", "dist")
-if os.path.exists(frontend_path):
-    app.mount("/assets", StaticFiles(directory=os.path.join(frontend_path, "assets")), name="assets")
-
-    @app.get("/{full_path:path}")
-    async def serve_spa(request: Request, full_path: str):
-        # API and Docs routes are already handled by routers above
-        if full_path.startswith("docs") or full_path.startswith("redoc") or full_path.startswith("openapi.json"):
-             return # Let FastAPI handle it
-        
-        file_path = os.path.join(frontend_path, full_path)
-        if os.path.isfile(file_path):
-            return FileResponse(file_path)
-        return FileResponse(os.path.join(frontend_path, "index.html"))
-
-
 @app.get("/", tags=["Health"])
 def root():
     return {"status": "ok", "app": "Uprising ColdOutreach", "version": "1.0.0"}
@@ -75,3 +58,20 @@ def root():
 @app.get("/health", tags=["Health"])
 def health():
     return {"status": "healthy"}
+
+
+# Serve Frontend
+frontend_path = os.path.join(os.path.dirname(__file__), "..", "prospectai", "dist")
+if os.path.exists(frontend_path):
+    app.mount("/assets", StaticFiles(directory=os.path.join(frontend_path, "assets")), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(request: Request, full_path: str):
+        # API and Docs routes are already handled by routers above
+        if full_path == "" or full_path.startswith("api") or full_path.startswith("docs") or full_path.startswith("redoc") or full_path.startswith("openapi.json"):
+             return None # Let FastAPI handle it
+        
+        file_path = os.path.join(frontend_path, full_path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+        return FileResponse(os.path.join(frontend_path, "index.html"))

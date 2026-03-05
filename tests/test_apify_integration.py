@@ -53,14 +53,15 @@ def test_normalize_place_missing_fields():
     assert result["tags"] == []
 
 
-@patch("app.services.apify.httpx.post")
-def test_start_google_maps_run(mock_post):
+@patch("app.services.apify.httpx.AsyncClient.post")
+@pytest.mark.asyncio
+async def test_start_google_maps_run(mock_post):
     mock_resp = MagicMock()
     mock_resp.json.return_value = MOCK_APIFY_RUN_RESPONSE
     mock_resp.raise_for_status = MagicMock()
     mock_post.return_value = mock_resp
 
-    result = start_google_maps_run("plumber", "Laval, QC", max_items=10)
+    result = await start_google_maps_run("plumber", "Laval, QC", max_items=10)
     assert result["id"] == "run123"
     assert result["defaultDatasetId"] == "dataset456"
     mock_post.assert_called_once()

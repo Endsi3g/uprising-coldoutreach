@@ -1,0 +1,6 @@
+
+> react-example@0.0.0 lint
+> tsc --noEmit
+
+src/pages/Pipelines.tsx(110,29): error TS2322: Type '{ children: (provided: DraggableProvided, snapshot: DraggableStateSnapshot) => any; key: any; draggableId: any; index: any; }' is not assignable to type 'DraggableProps'.
+  Property 'key' does not exist on type 'DraggableProps'.
