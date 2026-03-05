@@ -1,0 +1,32 @@
+{
+  "name": "uprising-coldoutreach-mcp",
+  "version": "1.0.0",
+  "description": "MCP Skills Server for Uprising ColdOutreach — discovers and serves AI skills",
+  "baseUrl": "http://localhost:8000",
+  "tools": [
+    {
+      "name": "list_skills",
+      "description": "List all available AI skills with name, description and path",
+      "endpoint": "GET /mcp/skills"
+    },
+    {
+      "name": "find_skills",
+      "description": "Find the best skills for a given task description using keyword search",
+      "endpoint": "GET /mcp/find?task={task}&top={top}",
+      "params": {
+        "task": "Natural language description of the task",
+        "top": "Number of skills to return (default: 5, max: 20)"
+      }
+    },
+    {
+      "name": "apply_skill",
+      "description": "Get the full SKILL.md content for a specific skill slug",
+      "endpoint": "GET /mcp/apply/{skill_slug}"
+    },
+    {
+      "name": "reindex_skills",
+      "description": "Re-scan the skills directory and rebuild the search index",
+      "endpoint": "POST /mcp/reindex"
+    }
+  ]
+}

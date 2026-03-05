@@ -1,6 +1,7 @@
 """FastAPI application entry point."""
 
 import os
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -19,6 +20,23 @@ from app.api.v1 import (
     tracking,
     webhooks,
 )
+from app.api.v1 import mcp_skills
+from app.core.database import Base, engine
+
+
+import logging
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Create all database tables on startup if they don't exist."""
+    # Skip table creation on the main engine if we are in testing mode
+    if os.getenv("TESTING") != "true":
+        try:
+            Base.metadata.create_all(bind=engine)
+        except Exception as e:
+            logging.warning(f"Could not initialize database tables: {e}")
+    yield
+
 
 app = FastAPI(
     title="Uprising ColdOutreach API",
@@ -26,12 +44,21 @@ app = FastAPI(
     version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
-# CORS — allow all in dev
+# CORS — explicit origins to comply with CORS spec (wildcard + credentials not allowed)
+_CORS_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:3000,http://localhost:8000,http://127.0.0.1:3000,http://127.0.0.1:8000",
+    ).split(",")
+    if origin.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -49,10 +76,11 @@ app.include_router(tracking.router)
 app.include_router(analytics.router)
 app.include_router(integrations.router)
 app.include_router(webhooks.router)
+app.include_router(mcp_skills.router)
 
 @app.get("/", tags=["Health"])
 def root():
-    return {"status": "ok", "app": "Uprising ColdOutreach", "version": "1.0.0"}
+    return {"status": "ok", "app": "Uprising ColdOutreach", "version": "2.0.0"}
 
 
 @app.get("/health", tags=["Health"])

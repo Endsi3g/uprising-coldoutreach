@@ -332,6 +332,7 @@ def _execute_dm_step(db, step: SequenceStep, lead: Lead, enrollment, steps):
         channel="instagram_dm",
         from_identity_id=identity.id,
         to_email=None,
+        to_phone=None,
         subject=None,
         body_html=None,
         body_text=message,

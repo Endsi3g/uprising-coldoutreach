@@ -1,7 +1,11 @@
 """Pytest fixtures — in-memory SQLite DB, TestClient, seed data."""
 
+import os
 import uuid
 from datetime import datetime, timezone
+
+# Ensure the main app doesn't try to connect to the real database during tests
+os.environ["TESTING"] = "true"
 
 import pytest
 from fastapi.testclient import TestClient

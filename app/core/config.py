@@ -12,6 +12,7 @@ class Settings(BaseSettings):
 
     # Apify
     APIFY_TOKEN: str = ""
+    APIFY_ACTOR_NAME: str = "uprising-coldoutreach-crawler"
 
     # Security
     SECRET_KEY: str = "change-me-in-production"
@@ -44,7 +45,11 @@ class Settings(BaseSettings):
     JASMIN_USER: str = "jookers"
     JASMIN_PASSWORD: str = "jookers"
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "extra": "ignore"
+    }
 
 
 settings = Settings()

@@ -55,6 +55,13 @@ export default function App() {
           <Route path="settings" element={
             <Suspense fallback={<LoadingFallback />}><Settings /></Suspense>
           } />
+          <Route path="*" element={
+            <div className="flex h-[80vh] w-full flex-col items-center justify-center space-y-4">
+              <h1 className="text-4xl font-bold text-text-primary">404</h1>
+              <p className="text-text-secondary">Page introuvable</p>
+              <a href="/" className="px-4 py-2 bg-primary text-white rounded-lg hover:opacity-90 transition-opacity">Retour au tableau de bord</a>
+            </div>
+          } />
         </Route>
       </Routes>
     </Router>
